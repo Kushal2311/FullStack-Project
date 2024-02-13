@@ -5,6 +5,8 @@ const ApiResponse = require("../utils/ApiResponse.js");
 const ApiError = require("../utils/ApiError.js");
 const asyncHandler = require("../utils/asyncHandler.js");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 
 // Send OTP 
@@ -155,17 +157,85 @@ const SignUp = asyncHandler(async(req , res) => {
 
 // LogIn
 const LogIn = asyncHandler( async(req , res) => {
-    
+    try {
+
+        // get data from req body
+        const {email , password} = req.body ;
+
+
+        // validation data 
+        if(!email || !password){
+            throw new ApiError (403 , "All fields required");
+        }
+
+
+        // user check exist or not 
+        const user = await User.findOne({email}).populate("additionalDetails")
+        if(!user){
+            throw new ApiError(401 , "User is not registered , plzz signup");
+        }
+
+
+        // generate jwt , after password matching 
+        if(await bcrypt.compare(password , user.password)){
+            const payload = {
+                email : user.email ,
+                id : user._id ,
+                role : user.role ,
+            }
+            const token = jwt.sign(payload , process.env.JWT_SECRET , {
+                expiresIn:"2h",
+            });
+            user.token = token ,
+            user.password = undefined ;
+
+            const options = {
+                expires : new Date(Date.now() + 3*24*60*60*1000) ,
+                httpOnly : true ,
+            }
+
+            // create cookie and send response
+            res.cookie("token" , token , options).status(200).json({
+                success:true ,
+                token ,
+                user ,
+                message : 'Logged in successfully' ,
+            })
+
+        }
+        else {
+            throw new ApiError(401 , "Password is incorrect")
+        }
+        
+
+
+
+    } catch (error) {
+        throw new ApiError(500 , "Log In failure Plzzz Try Again")
+    }
 })
 
 
 
 // changePassword
+// TODO
+const changePassword = asyncHandler( async(req , res) => {
+    
+    // get data from req body
+    const {oldPass , newPass , conPass} = req.body ;
+    // get oldPass , newPass , confirmPasss ,
+    // Validation
+    // update password in DB
+    // send mail - password updated 
+    // send res
+
+
+})
 
 
 
 export {
     sendOTP ,
     SignUp ,
-
+    LogIn
 }
