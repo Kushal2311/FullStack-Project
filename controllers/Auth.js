@@ -220,15 +220,57 @@ const LogIn = asyncHandler( async(req , res) => {
 // changePassword
 // TODO
 const changePassword = asyncHandler( async(req , res) => {
-    
-    // get data from req body
-    const {oldPass , newPass , conPass} = req.body ;
-    // get oldPass , newPass , confirmPasss ,
-    // Validation
-    // update password in DB
-    // send mail - password updated 
-    // send res
+    try {
+        
+        // get data from req body
+        const userDetails = await User.findById(req.user.id);
+        
 
+        // get oldPass , newPass , confirmPasss ,
+        const {oldPass , newPass , conPass} = req.body ;
+
+
+        // Validation
+        const isPasswordMatch = await bcrypt.compare(oldPass , userDetails.password);
+
+        if(!isPasswordMatch){
+            throw new ApiError(401 , "The Old Password is Incorrect")
+        }
+
+        if(newPass !== conPass){
+            throw new ApiError(404 , "The password and confirm password does not match")
+        }  
+
+        // update password in DB
+        const newencryptedPassword = await bcrypt.hash(newPass , 10);
+        const updateUserDetails = await User.findByIdAndUpdate(
+            req.user.id ,
+            {password : newencryptedPassword} ,
+            {new : true }
+        );
+        // send mail - password updated 
+        try {
+			const emailResponse = await mailSender(
+				updateUserDetails.email,
+				"Password updated",
+				`Your account's password has been updated at ${Date.now()}`
+
+				
+			);
+			console.log("Email sent successfully:", emailResponse.response);
+		} catch (error) {
+			// If there's an error sending the email, log the error and return a 500 (Internal Server Error) error
+			console.error("Error occurred while sending email:", error);
+            throw new ApiError(500 , "Error occurred while sending email")
+		}
+        // send res
+        return res.status(200).json(
+            new ApiResponse(201 , "Password Updated successfully")
+        )
+    
+    } catch (error) {
+        throw new ApiError(500 , "Error occurred during changing password")
+    }
 
 })
 
@@ -237,5 +279,6 @@ const changePassword = asyncHandler( async(req , res) => {
 export {
     sendOTP ,
     SignUp ,
-    LogIn
+    LogIn ,
+    changePassword 
 }
