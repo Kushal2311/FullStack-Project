@@ -1,5 +1,5 @@
 const Course = require("../models/Course.js");
-const Tag = require("../models/Tags.js");
+const Category = require("../models/Category.js");
 const User = require("../models/User.js");
 const uploadImageToCloudinary = require("../utils/imageUploader.js");
 const ApiError = require("../utils/ApiError.js");
@@ -11,12 +11,12 @@ exports.createCourse = async(req , res)=>{
     try {
 
         // fetch data 
-        const {courseName , courseDescription , whatYouWillLearn , price , tag} = req.body ;
+        const {courseName , courseDescription , whatYouWillLearn , price , category} = req.body ;
 
         // get thumbnail
         const thumbnail = req.file.thumbnailImage ;
         
-        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !tag || !thumbnail){
+        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category || !thumbnail){
             throw new ApiError(404 , "All fields are required");
         }  
 
@@ -29,11 +29,11 @@ exports.createCourse = async(req , res)=>{
             throw new ApiError(404 , "Instructor Details Not Found");
         }
 
-        // check given Tag is Valid or not 
-        const tagDetails = await Tag.findById(tag);
-        if(!tagDetails){
-            throw new ApiError(404 , "Tag Details Not Found");
-        }
+        // check given Category is Valid or not 
+        const categoryDetails = await Category.findById(category);
+		if (!categoryDetails) {
+			throw new ApiError(404 , "Category Details Not found")
+		}
 
         // upload Image to cloudinary 
         const thumbnailImage = await uploadImageToCloudinary(thumbnail , process.env.FOLDER_NAME);
@@ -45,7 +45,7 @@ exports.createCourse = async(req , res)=>{
             instructor : instructorDetails._id ,
             whatYouWillLearn ,
             price ,
-            tag : tagDetails._id,
+            category : categoryDetails._id,
             thumbnail : thumbnailImage.secure_url ,
         })
 
@@ -63,8 +63,9 @@ exports.createCourse = async(req , res)=>{
         // 
 
         // Add the new course to the Categories
-		await Tag.findByIdAndUpdate(
-			{ _id: tagDetails._id },
+		// Add the new course to the Categories
+		await Category.findByIdAndUpdate(
+			{ _id: category },
 			{
 				$push: {
 					course: newCourse._id,
