@@ -57,6 +57,11 @@ exports.createSection = async(req , res) => {
 exports.updateSection = async(req , res) => {
     try {
         const { sectionName, sectionId } = req.body;
+
+        if(!sectionId || !sectionId){
+            throw new ApiError(401 , "all fields are required")
+        }
+
 		const section = await Section.findByIdAndUpdate(
 			sectionId,
 			{ sectionName },
@@ -66,8 +71,27 @@ exports.updateSection = async(req , res) => {
         return res.status(200).json(
             new ApiResponse(200 , section ,"Section updated successfully")
         )
+
     } catch (error) {
         console.log(error);
         throw new ApiError(44 , "Error while updating Section")
+    }
+}
+
+
+exports.deleteSection = async(req , res) => {
+    try {
+        // get id - assuming that we are sending ID in Parameter
+        const {sectionID} = req.params 
+        await Section.findByIdAndDelete(sectionID);
+        // TODO[testing]:Do we need to delete entry from from course schema ??
+        // return response 
+        return res.status(200).json(
+            new ApiResponse(200 , "Section deleted Successfully")
+        )
+        
+    } catch (error) {
+        console.log(error);
+        throw new ApiError(44 , "Error while deleting Section")
     }
 }
