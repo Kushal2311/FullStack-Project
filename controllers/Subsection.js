@@ -34,7 +34,7 @@ exports.createSubSection = async(req , res) => {
         ).populate("subSection")
         // return response 
         return res.status(200).json(
-            new ApiResponse(200 , "Sub-Section Created Successfully")
+            new ApiResponse(200 , updatedSection , "Sub-Section Created Successfully")
         )
     } catch (error) {
         console.log(error);
