@@ -1,4 +1,4 @@
-const Course = require("../models/Course.js");
+// const Course = require("../models/Course.js");
 const Category = require("../models/Category.js");
 const User = require("../models/User.js");
 const uploadImageToCloudinary = require("../utils/imageUploader.js");
@@ -106,5 +106,50 @@ exports.showAllCourses = async(req, res) => {
     } catch (error) {
         throw new ApiError(500 , "Cannot fetch course data");
 
+    }
+}
+
+
+exports.getCourseDetails = async(req , res) => {
+    try {
+        
+        // get id 
+        const courseId = req.body ;
+
+        // find course details 
+        const courseDetails = await Course.find(
+            {_id : courseId})
+            .populate(
+                {
+                    path : "instructor" ,
+                    populate : {
+                        path : "additionalDetails" ,
+                    },
+                }
+            )
+            .populate("category")
+            .populate("ratingAndReviews")
+            .populate({
+                path : "courseContent" ,
+                populate : {
+                    path : "subSection" ,
+                },
+            })
+            .exec();
+
+    if(!courseDetails){
+        throw new ApiError(404 , "Course Details Not found")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200 , courseDetails , "Course Details fetched successfully")
+    )
+
+
+
+
+    } catch (error) {
+        console.log(error);
+        throw new ApiError(500 , "Cannot fetch course details");
     }
 }
