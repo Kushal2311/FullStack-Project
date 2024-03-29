@@ -20,5 +20,5 @@ class ApiError extends Error {
     }
 }
 
-
-export {ApiError}
+module.exports = ApiError
+// export {ApiError}

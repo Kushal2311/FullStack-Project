@@ -3,14 +3,15 @@ const OTP = require("../models/OTP.js");
 const otpGenerator = require("otp-generator");
 const ApiResponse = require("../utils/ApiResponse.js");
 const ApiError = require("../utils/ApiError.js");
-const asyncHandler = require("../utils/asyncHandler.js");
+const Profile = require("../models/Profile.js")
+// const asyncHandler = require("../utils/asyncHandler.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 
 // Send OTP 
-const sendOTP = asyncHandler( async(req , res) => {
+exports.sendOTP = async(req , res) => {
 
     try {
         // Fetch email from user body 
@@ -62,15 +63,16 @@ const sendOTP = asyncHandler( async(req , res) => {
         throw new ApiError(500 , "Error in OTP sending"); 
         
     }
-})
+}
 
 
 
 // SignUP
 
-const SignUp = asyncHandler(async(req , res) => {
+exports.SignUp = async(req , res) => {
     try {
 
+        console.log("Signup Entry")
         // Data Fetch From req ki body
         const {
             firstName ,
@@ -85,7 +87,7 @@ const SignUp = asyncHandler(async(req , res) => {
     
     
         // Validate Karo
-        if(!firstName || !lastName || !email || !password || confirmPassword || !otp){
+        if(!firstName || !lastName || !email || !password || !confirmPassword || !otp){
             throw new ApiError(403 , "All Fields are required");
         }
     
@@ -142,21 +144,22 @@ const SignUp = asyncHandler(async(req , res) => {
     
     
         // return res 
-        return res
-        .status(200)
+        return res.status(200)
         .json(
             new ApiResponse(201 , user , "User Registered Successfully")
         )
         
     } catch (error) {
+        console.log("Love babbar")
+        console.log(error)
         throw new ApiError(500 , "User Can't be registered , Plz try again");
     }
 
-})
+}
 
 
 // LogIn
-const LogIn = asyncHandler( async(req , res) => {
+exports.LogIn = async(req , res) => {
     try {
 
         // get data from req body
@@ -211,15 +214,16 @@ const LogIn = asyncHandler( async(req , res) => {
 
 
     } catch (error) {
+        console.log(error)
         throw new ApiError(500 , "Log In failure Plzzz Try Again")
     }
-})
+}
 
 
 
 // changePassword
 // TODO
-const changePassword = asyncHandler( async(req , res) => {
+exports.changePassword = async(req , res) => {
     try {
         
         // get data from req body
@@ -272,13 +276,4 @@ const changePassword = asyncHandler( async(req , res) => {
         throw new ApiError(500 , "Error occurred during changing password")
     }
 
-})
-
-
-
-export {
-    sendOTP ,
-    SignUp ,
-    LogIn ,
-    changePassword 
 }

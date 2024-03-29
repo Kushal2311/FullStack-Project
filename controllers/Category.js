@@ -5,7 +5,7 @@ const { asyncHandler } = require("../utils/asyncHandler.js");
 
 
 // create Category ka handler function 
-exports.createCategory = asyncHandler(async(req, res)=> {
+exports.createCategory = async(req, res)=> {
     try {
         // fetch data 
         const {name , description} = req.body ;
@@ -31,9 +31,9 @@ exports.createCategory = asyncHandler(async(req, res)=> {
         throw new ApiError(500 , "error in creating Category function")
     }
 
-})
+}
 
-exports.showAllCategory = asyncHandler(async(req, res)=>{
+exports.showAllCategory = async(req, res)=>{
     try {
         const allCategory = await Category.find({} , {name:true , description:true});
         return res.json(
@@ -42,7 +42,7 @@ exports.showAllCategory = asyncHandler(async(req, res)=>{
     } catch (error) {
         throw new ApiError(500  , "error in showAllCategory");
     }
-})
+}
 
 // categoryPageDetails 
 exports.categoryPageDetails = async(req , res) => {
