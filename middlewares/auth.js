@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const User = require("../models/User.js");
-const { ApiError } = require("../utils/ApiError.js");
+const ApiError = require("../utils/ApiError.js");
 
 exports.auth = async(req, res , next) => {
     try {
@@ -19,26 +19,26 @@ exports.auth = async(req, res , next) => {
             console.log(decode);
             req.user = decode 
         } catch (error) {
-            throw new ApiError(401 , "Token is invalid")
+            throw new ApiError(401 , "Token is invalid");
         }
         next();
     } catch (error) {
-        throw new ApiError(401 , "Somthing went wrong while validating token")    
+        throw new ApiError(401 , "Somthing went wrong while validating token") ;  
     }
-}
+};
 
 
 // isStudent
 exports.isStudent = async(req, res ,next) => {
     try {
         if(req.user.accountType !== "Student"){
-            throw new ApiError(401 , "This is a protected route for students only")
+            throw new ApiError(401 , "This is a protected route for students only");
         }
         next();
     } catch (error) {
-        throw new ApiError(500 , "User role cannot be verified , try again")
+        throw new ApiError(500 , "User role cannot be verified , try again");
     }     
-}
+};
 
 
 
@@ -46,13 +46,13 @@ exports.isStudent = async(req, res ,next) => {
 exports.isInstructor = async(req , res , next) => {
     try {
         if(req.user.accountType !== "Instructor"){
-            throw new ApiError(401 , "This is a protected route for Instructor only")
+            throw new ApiError(401 , "This is a protected route for Instructor only");
         }
         next();
     } catch (error) {
-        throw new ApiError(500 , "User role cannot be verified , try again")
+        throw new ApiError(500 , "User role cannot be verified , try again");
     }  
-}
+};
 
 
 
@@ -60,10 +60,10 @@ exports.isInstructor = async(req , res , next) => {
 exports.isAdmin = async(req , res , next) => {
     try {
         if(req.user.accountType !== "Admin"){
-            throw new ApiError(401 , "This is a protected route for Admin only")
+            throw new ApiError(401 , "This is a protected route for Admin only");
         }
         next();
     } catch (error) {
-        throw new ApiError(500 , "User role cannot be verified , try again")
+        throw new ApiError(500 , "User role cannot be verified , try again");
     }  
-}
+};

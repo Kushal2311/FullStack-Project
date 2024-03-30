@@ -174,6 +174,7 @@ exports.LogIn = async(req , res) => {
 
         // user check exist or not 
         const user = await User.findOne({email}).populate("additionalDetails")
+        
         if(!user){
             throw new ApiError(401 , "User is not registered , plzz signup");
         }
@@ -207,15 +208,15 @@ exports.LogIn = async(req , res) => {
 
         }
         else {
-            throw new ApiError(401 , "Password is incorrect")
+            throw new ApiError(401 , "Password is incorrect");
         }
         
 
 
 
     } catch (error) {
-        console.log(error)
-        throw new ApiError(500 , "Log In failure Plzzz Try Again")
+        console.log(error);
+        throw new ApiError(500 , "Log In failure Plzzz Try Again");
     }
 }
 

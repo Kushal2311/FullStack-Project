@@ -1,29 +1,59 @@
-// const Course = require("../models/Course.js");
+const Course = require("../models/Course.js");
 const Category = require("../models/Category.js");
 const User = require("../models/User.js");
 const uploadImageToCloudinary = require("../utils/imageUploader.js");
 const ApiError = require("../utils/ApiError.js");
-const asyncHandler = require("../utils/asyncHandler.js");
 const ApiResponse = require("../utils/ApiResponse.js");
-
+require("dotenv").config();
 
 exports.createCourse = async(req , res)=>{
     try {
 
-        // fetch data 
-        const {courseName , courseDescription , whatYouWillLearn , price , category} = req.body ;
+        // Get user ID from request object
+        const userId = req.user.id
+
+        let {
+            courseName,
+            courseDescription,
+            whatYouWillLearn,
+            price,
+            tag: _tag,
+            category,
+            status,
+            instructions: _instructions,
+          } = req.body
 
         // get thumbnail
-        const thumbnail = req.file.thumbnailImage ;
+        const thumbnail = req.files.thumbnailImage ;
+        console.log(thumbnail);
         
-        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category || !thumbnail){
+        const tag = _tag ? JSON.parse(_tag) : [];
+        const instructions = _instructions ? JSON.parse(_instructions) : [];
+
+        console.log("tag", tag)
+        console.log("instructions", instructions)
+
+        if (
+            !courseName ||
+            !courseDescription ||
+            !whatYouWillLearn ||
+            !price ||
+            !tag.length ||
+            !thumbnail ||
+            !category ||
+            !instructions.length
+          ){
             throw new ApiError(404 , "All fields are required");
         }  
 
+        if (!status || status === undefined) {
+            status = "Draft"
+        }
+
         // check for instructor 
-        const userId = req.user.id;
-        const instructorDetails = await User.findById(userId);
-        console.log("Instructor details :- " , instructorDetails);
+        const instructorDetails = await User.findById(userId, {
+            accountType: "Instructor",
+        })
 
         if(!instructorDetails){
             throw new ApiError(404 , "Instructor Details Not Found");
@@ -64,7 +94,7 @@ exports.createCourse = async(req , res)=>{
 
         // Add the new course to the Categories
 		// Add the new course to the Categories
-		await Category.findByIdAndUpdate(
+		const categoryDetails2 =  await Category.findByIdAndUpdate(
 			{ _id: category },
 			{
 				$push: {
@@ -72,7 +102,9 @@ exports.createCourse = async(req , res)=>{
 				},
 			},
 			{ new: true }
-		);
+		)
+        
+        console.log("HEREEEEEEEE", categoryDetails2);
 
         return res.status(200).json(
             new ApiResponse(200 , newCourse , "Course Created Successfully")
@@ -80,6 +112,8 @@ exports.createCourse = async(req , res)=>{
 
 
     } catch (error) {
+        console.log("kushal found error");
+        console.log(error);
         throw new ApiError(400 , "Error while creating course");
     }
 }
@@ -114,7 +148,7 @@ exports.getCourseDetails = async(req , res) => {
     try {
         
         // get id 
-        const courseId = req.body ;
+        const {courseId} = req.body ;
 
         // find course details 
         const courseDetails = await Course.find(
@@ -128,7 +162,7 @@ exports.getCourseDetails = async(req , res) => {
                 }
             )
             .populate("category")
-            .populate("ratingAndReviews")
+            // .populate("ratingAndReviews")
             .populate({
                 path : "courseContent" ,
                 populate : {
@@ -144,9 +178,6 @@ exports.getCourseDetails = async(req , res) => {
     return res.status(200).json(
         new ApiResponse(200 , courseDetails , "Course Details fetched successfully")
     )
-
-
-
 
     } catch (error) {
         console.log(error);

@@ -1,7 +1,8 @@
 const Section = require("../models/Section.js");
+const SubSection = require("../models/SubSection.js");
 const Course = require("../models/Course.js");
-const { ApiError } = require("../utils/ApiError.js");
-const { ApiResponse } = require("../utils/ApiResponse");
+const ApiError = require("../utils/ApiError.js");
+const ApiResponse = require("../utils/ApiResponse");
 
 
 exports.createSection = async(req , res) => {
@@ -81,10 +82,32 @@ exports.updateSection = async(req , res) => {
 
 exports.deleteSection = async(req , res) => {
     try {
-        // get id - assuming that we are sending ID in Parameter
-        const {sectionID} = req.params 
-        await Section.findByIdAndDelete(sectionID);
-        // TODO[testing]:Do we need to delete entry from from course schema ??
+        // get id - assuming that we are sending ID in body
+        const { sectionId, courseId }  = req.body;
+        await Course.findByIdAndUpdate(courseId, {
+			$pull: {
+				courseContent: sectionId,
+			}
+		})
+        const section = await Section.findById(sectionId);
+		console.log(sectionId, courseId);
+        if(!section){
+            throw new ApiError(404 , "Section not Found")
+        }
+
+        //delete sub section
+        await SubSection.deleteMany({_id: {$in: section.subSection}});
+
+		await Section.findByIdAndDelete(sectionId);
+        
+        const course = await Course.findById(courseId).populate({
+			path:"courseContent",
+			populate: {
+				path: "subSection"
+			}
+		})
+		.exec();
+
         // return response 
         return res.status(200).json(
             new ApiResponse(200 , "Section deleted Successfully")
@@ -92,6 +115,6 @@ exports.deleteSection = async(req , res) => {
         
     } catch (error) {
         console.log(error);
-        throw new ApiError(44 , "Error while deleting Section")
+        throw new ApiError(404 , "Error while deleting Section")
     }
 }

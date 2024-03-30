@@ -1,18 +1,18 @@
 const SubSection = require("../models/SubSection.js");
 const Section = require("../models/Section.js");
-const { ApiError } = require("../utils/ApiError.js");
-const { ApiResponse } = require("../utils/ApiResponse");
-const {uploadImageToCloudinary} = require("../utils/imageUploader.js");
+const ApiError = require("../utils/ApiError.js");
+const  ApiResponse = require("../utils/ApiResponse");
+const uploadImageToCloudinary = require("../utils/imageUploader.js");
 
 // Create SubSection
 exports.createSubSection = async(req , res) => {
     try {
         // fetch data from req body
-        const {sectionId , title , timeduration , description} = req.body ;
+        const {sectionId , title , timeDuration , description} = req.body ;
         // extract file/videos
-        const video = req.body.videoFile ;
+        const video = req.files.video ;
         // validation
-        if(!sectionId  || !title || !timeduration || !description){
+        if(!sectionId  || !title || !timeDuration || !description){
             throw new ApiError(404 , "All Fields are required")
         }
         // upload videos on cloudinary 
@@ -20,7 +20,7 @@ exports.createSubSection = async(req , res) => {
         // create a sub-section
         const subSectionDetails = await SubSection.create({
             title : title ,
-            timeduration : timeduration ,
+            timeDuration : timeDuration ,
             description : description ,
             videoURL : uploadDetails.secure_url ,
         }) 

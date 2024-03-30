@@ -1,7 +1,9 @@
 const Profile = require("../models/Profile.js");
 const User = require("../models/User.js");
-const { ApiError } = require("../utils/ApiError.js");
-const { ApiResponse } = require("../utils/ApiResponse");
+const ApiError = require("../utils/ApiError.js");
+const ApiResponse = require("../utils/ApiResponse");
+const uploadImageToCloudinary = require("../utils/imageUploader.js");
+require("dotenv").config();
 
 
 exports.updateProfile = async(req , res) => {
@@ -14,11 +16,15 @@ exports.updateProfile = async(req , res) => {
 
         // validation
         if(!contactNumber || !gender || !id){
-            throw new ApiError(404 , "All Fields are required")
+          throw new ApiError(404,"All Fields are required");
         }
 
         // find profile
         const userDetails = await User.findById(id);
+        if (!userDetails) {
+          throw new ApiError(404, "User not found");
+        }
+
         const profileId = userDetails.additionalDetails ;
         const profileDetails = await Profile.findById(profileId);
 
@@ -32,11 +38,11 @@ exports.updateProfile = async(req , res) => {
         // return response 
         return res.status(200).json(
             new ApiResponse(200 , profileDetails , "Profile Updated Successfully")
-        )
+        );
         
     } catch (error) {
         console.log(error);
-        throw new ApiError(404 , "Error while Updating Profile")
+        throw new ApiError(404,"Error while Updating Profile");
     }
 };
 
@@ -46,15 +52,16 @@ exports.deleteAccount = async (req , res) => {
     try {
         // get id 
         const id = req.user.id ;
-        const userDetails = await User.findById(id);
+        console.log(id);
+        const user = await User.findById({_id : id});
 
         // validation 
-        if(!userDetails){
+        if(!user){
             throw new ApiError(404 , "User not found")
         }
 
         // delete profile 
-        await Profile.findByIdAndDelete({_id : userDetails.additionalDetails});
+        await Profile.findByIdAndDelete({_id : user.additionalDetails});
 
         // TODO : HW - unenroll user form all enrolled courses 
 
@@ -63,12 +70,12 @@ exports.deleteAccount = async (req , res) => {
 
         // return response 
         return res.status(200).json(
-            new ApiResponse(200 , profileDetails , "Profile Deleted Successfully")
+            new ApiResponse(200 , "Profile Deleted Successfully")
         )
         
     } catch (error) {
         console.log(error);
-        throw new ApiError(404 , "Error while deleting Profile")
+        throw new ApiError(404 , "Error while deleting Profile");
     }
 };
 
@@ -96,6 +103,11 @@ exports.updateDisplayPicture = async (req, res) => {
     try {
       const displayPicture = req.files.displayPicture
       const userId = req.user.id
+
+      const userDetails = await User.findById(userId);
+      const profileId = userDetails.additionalDetails;
+      const profileDetails = await Profile.findById(profileId); // Define profileDetails
+
       const image = await uploadImageToCloudinary(
         displayPicture,
         process.env.FOLDER_NAME,
@@ -206,3 +218,4 @@ exports.updateDisplayPicture = async (req, res) => {
       throw new ApiError(404 , "Server Error")
     }
   }
+

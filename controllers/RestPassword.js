@@ -3,11 +3,12 @@ const mailSender = require("../utils/mailSender.js");
 const ApiError = require("../utils/ApiError.js");
 const asyncHandler = require("../utils/asyncHandler.js");
 const ApiResponse = require("../utils/ApiResponse.js");
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 
 // restSetPasswordToken 
-exports.resetPasswordToken = asyncHandler( async(req, res) => {
+exports.resetPasswordToken = async(req, res) => {
     //  get email from req body 
     const email = req.body.email ;
 
@@ -39,11 +40,11 @@ exports.resetPasswordToken = asyncHandler( async(req, res) => {
     return res.json(
         new ApiResponse(200 , "Email sent successfully plz check email")
     )
-})
+}
 
 
 // Reset Password 
-exports.resetPassword = asyncHandler( async(req , res) =>{
+exports.resetPassword = async(req , res) =>{
     // data fetch 
     const {token , password , confirmPassword } = req.body ;
     // validation
@@ -70,4 +71,4 @@ exports.resetPassword = asyncHandler( async(req , res) =>{
         new ApiResponse(200 , user , "Password rest successfully and updated in db")
     )
 
-})
+}
